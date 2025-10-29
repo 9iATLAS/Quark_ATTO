@@ -2,19 +2,21 @@ name: Quark Daily Sign
 
 on:
   schedule:
-    - cron: '13 01 * * *'   # 每天 UTC 01:13 => 如果你要每日 09:13 本地（假设东八区），用 UTC 01:13
-    - cron: '13 05 * * *'   # 每天 UTC 05:13 => 对应东八区 13:13；若你需要 09:13 和 13:13 本地，请见备注
+    - cron: '13 01 * * *'   # 每天 09:13 CST (UTC+8)
+    - cron: '13 05 * * *'   # 每天 13:13 CST (UTC+8)
   workflow_dispatch: {}
 
 jobs:
   run-quark:
     runs-on: ubuntu-latest
     env:
-      # 将你的 COOKIE_QUARK 添加为仓库 Secrets，然后在这里引用：
       COOKIE_QUARK: ${{ secrets.COOKIE_QUARK }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Show repo files (for debugging)
+        run: ls -la
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -26,5 +28,16 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+      - name: Ensure script exists
+        run: |
+          SCRIPT=checkIn_Quark.py
+          if [ ! -f "$SCRIPT" ]; then
+            echo "Script $SCRIPT not found. Available files:"
+            ls -la
+            exit 2
+          fi
+          echo "Found $SCRIPT, running..."
+
       - name: Run quark script
-        run: python checkIn_Quark.py.py
+        run: |
+          python checkIn_Quark.py
