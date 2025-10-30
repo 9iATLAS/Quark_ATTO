@@ -2,8 +2,8 @@ name: Quark Daily Sign
 
 on:
   schedule:
-    - cron: '13 00 * * *'   # UTC 01:13 (请按 UTC 解释)
-    - cron: '13 04 * * *'   # UTC 05:13
+    - cron: '13 00 * * *'   # UTC 01:13 
+    - cron: '41 04 * * *'   # UTC 05:13
   workflow_dispatch: {}
 
 jobs:
