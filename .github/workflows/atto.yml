@@ -3,8 +3,7 @@ name: Quark Daily Sign
 on:
   schedule:
     - cron: '13 00 * * *'  
-    - cron: '41 08 * * *' 
-    - cron: '27 16 * * *'
+    - cron: '27 12 * * *'
   workflow_dispatch: {}
 
 jobs:
