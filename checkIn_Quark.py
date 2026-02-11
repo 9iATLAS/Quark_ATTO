@@ -1,30 +1,33 @@
-import os 
-import re 
-import sys 
-import requests 
+import os
+import re
+import sys
 
-cookie_list = os.getenv("COOKIE_QUARK").split('\n|&&')
+import requests
 
-# 替代 notify 功能
-def send(title, message):
-    print(f"{title}: {message}")
+# 测试用环境变量
+# os.environ['COOKIE_QUARK'] = ''
 
-# 获取环境变量 
-def get_env(): 
-    # 判断 COOKIE_QUARK是否存在于环境变量 
-    if "COOKIE_QUARK" in os.environ: 
-        # 读取系统变量以 \n 或 && 分割变量 
-        cookie_list = re.split('\n|&&', os.environ.get('COOKIE_QUARK')) 
-    else: 
-        # 标准日志输出 
-        print('❌未添加COOKIE_QUARK变量') 
-        send('夸克自动签到', '❌未添加COOKIE_QUARK变量') 
-        # 脚本退出 
-        sys.exit(0) 
+try:  # 异常捕捉
+    from utils.notify import send  # 导入消息通知模块
+except Exception as err:  # 异常捕捉
+    print('%s\n❌加载通知服务失败~' % err)
 
-    return cookie_list 
 
-# 其他代码...
+# 获取环境变量
+def get_env():
+    # 判断 COOKIE_QUARK是否存在于环境变量
+    if "COOKIE_QUARK" in os.environ:
+        # 读取系统变量以 \n 或 && 分割变量
+        cookie_list = re.split('\n|&&', os.environ.get('COOKIE_QUARK'))
+    else:
+        # 标准日志输出
+        print('❌未添加COOKIE_QUARK变量')
+        send('夸克自动签到', '❌未添加COOKIE_QUARK变量')
+        # 脚本退出
+        sys.exit(0)
+
+    return cookie_list
+
 
 class Quark:
     '''
@@ -144,6 +147,31 @@ class Quark:
         return log
 
 
+def extract_params(url):
+    '''
+    从URL中提取所需的参数
+    :param url: 包含参数的URL
+    :return: 返回一个字典，包含所需的参数
+    '''
+    # 提取URL中的查询参数部分（?后面的内容）
+    query_start = url.find('?')
+    query_string = url[query_start + 1:] if query_start != -1 else ''
+
+    # 解析查询参数
+    params = {}
+    for param in query_string.split('&'):
+        if '=' in param:
+            key, value = param.split('=', 1)
+            params[key] = value
+
+    # 返回所需的参数
+    return {
+        'kps': params.get('kps', ''),
+        'sign': params.get('sign', ''),
+        'vcode': params.get('vcode', '')
+    }
+
+
 def main():
     '''
     主函数
@@ -162,7 +190,13 @@ def main():
         for a in cookie_quark[i].replace(" ", "").split(';'):
             if not a == '':
                 user_data.update({a[0:a.index('=')]: a[a.index('=') + 1:]})
+        
+        # 从url参数中提取额外信息
+        if 'url' in user_data:
+            url_params = extract_params(user_data['url'])
+            user_data.update(url_params)
         # print(user_data)
+        
         # 开始任务
         log = f"🙍🏻‍♂️ 第{i + 1}个账号"
         msg += log
@@ -172,7 +206,7 @@ def main():
 
         i += 1
 
-    # print(msg)
+    print(msg)
 
     try:
         send('夸克自动签到', msg)
